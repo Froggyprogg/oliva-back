@@ -1,0 +1,52 @@
+syntax="proto3";
+
+package user_v1;
+
+option go_package="./";
+
+import "google/protobuf/timestamp.proto";
+
+service Userv1{
+  rpc CreateUser(PostRequestUser) returns (PostResponseUser);
+  rpc GetUser(GetRequestUser) returns (GetResponseUser);
+}
+
+//CreateUser
+message PostRequestUser{
+  string surname=2;
+  string name=3;
+  string middlename=4;
+  string phone_number=5;
+  string email=6;
+  google.protobuf.Timestamp birt_date=7;
+  string sex=8;
+}
+message PostResponseUser{
+  uint32 id_user=1;
+}
+
+//GetUser
+message GetRequestUser{
+  uint32 id_user=1;
+}
+message GetResponseUser{
+  uint32 id_user=1;
+  string surname=2;
+  string name=3;
+  string middlename=4;
+  string phone_number=5;
+  string email=6;
+  google.protobuf.Timestamp birt_date=7;
+  string sex=8;
+}
+
+message user{
+  uint32 id_user=1;
+  string surname=2;
+  string name=3;
+  string middlename=4;
+  string phone_number=5;
+  string email=6;
+  google.protobuf.Timestamp birt_date=7;
+  string sex=8;
+}
