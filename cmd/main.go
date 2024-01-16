@@ -1,9 +1,23 @@
 package main
 
+import (
+	"log"
+	"oliva-back/pkg/app"
+	"oliva-back/pkg/config"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
 func main() {
-	//TODO: config
+	cfg := config.MustLoad()
 
-	//TODO: app run
+	application := app.Run(cfg)
 
-	//TODO: graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	<-stop
+	application.Stop()
+	log.Print("Gracefully stopped")
 }
