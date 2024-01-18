@@ -7,6 +7,7 @@ option go_package="./";
 service Userv1{
   rpc CreateUser(PostRequestUser) returns (PostResponseUser);
   rpc GetUser(GetRequestUser) returns (GetResponseUser);
+  rpc LoginUser(RequestLogin) returns(ResponseLogin);
 }
 
 //CreateUser
@@ -17,6 +18,7 @@ message PostRequestUser{
   string phone_number=5;
   string email=6;
   string sex=7;
+  string password=8;
 }
 message PostResponseUser{
   uint32 id_user=1;
@@ -35,8 +37,14 @@ message GetResponseUser{
   string email=6;
   string sex=7;
 }
-
-//TODO: Добавить логин и пароль
+//Login
+message RequestLogin{
+  string login = 1;
+  string password =2;
+}
+message ResponseLogin{
+  string token=1;
+}
 //TODO: Разобраться с датой рождения
 message user{
   uint32 id_user=1;
@@ -46,4 +54,5 @@ message user{
   string phone_number=5;
   string email=6;
   string sex=7;
+  string password=8;
 }

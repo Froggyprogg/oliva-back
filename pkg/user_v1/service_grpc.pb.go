@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Userv1_CreateUser_FullMethodName = "/user_v1.Userv1/CreateUser"
 	Userv1_GetUser_FullMethodName    = "/user_v1.Userv1/GetUser"
+	Userv1_LoginUser_FullMethodName  = "/user_v1.Userv1/LoginUser"
 )
 
 // Userv1Client is the client API for Userv1 service.
@@ -29,6 +30,7 @@ const (
 type Userv1Client interface {
 	CreateUser(ctx context.Context, in *PostRequestUser, opts ...grpc.CallOption) (*PostResponseUser, error)
 	GetUser(ctx context.Context, in *GetRequestUser, opts ...grpc.CallOption) (*GetResponseUser, error)
+	LoginUser(ctx context.Context, in *RequestLogin, opts ...grpc.CallOption) (*ResponseLogin, error)
 }
 
 type userv1Client struct {
@@ -57,12 +59,22 @@ func (c *userv1Client) GetUser(ctx context.Context, in *GetRequestUser, opts ...
 	return out, nil
 }
 
+func (c *userv1Client) LoginUser(ctx context.Context, in *RequestLogin, opts ...grpc.CallOption) (*ResponseLogin, error) {
+	out := new(ResponseLogin)
+	err := c.cc.Invoke(ctx, Userv1_LoginUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Userv1Server is the server API for Userv1 service.
 // All implementations must embed UnimplementedUserv1Server
 // for forward compatibility
 type Userv1Server interface {
 	CreateUser(context.Context, *PostRequestUser) (*PostResponseUser, error)
 	GetUser(context.Context, *GetRequestUser) (*GetResponseUser, error)
+	LoginUser(context.Context, *RequestLogin) (*ResponseLogin, error)
 	mustEmbedUnimplementedUserv1Server()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedUserv1Server) CreateUser(context.Context, *PostRequestUser) (
 }
 func (UnimplementedUserv1Server) GetUser(context.Context, *GetRequestUser) (*GetResponseUser, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedUserv1Server) LoginUser(context.Context, *RequestLogin) (*ResponseLogin, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginUser not implemented")
 }
 func (UnimplementedUserv1Server) mustEmbedUnimplementedUserv1Server() {}
 
@@ -125,6 +140,24 @@ func _Userv1_GetUser_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Userv1_LoginUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RequestLogin)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(Userv1Server).LoginUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Userv1_LoginUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(Userv1Server).LoginUser(ctx, req.(*RequestLogin))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Userv1_ServiceDesc is the grpc.ServiceDesc for Userv1 service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +172,10 @@ var Userv1_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _Userv1_GetUser_Handler,
+		},
+		{
+			MethodName: "LoginUser",
+			Handler:    _Userv1_LoginUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

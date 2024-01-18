@@ -3,11 +3,15 @@ package user_v1
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/go-passwd/validator"
+	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 	"oliva-back/pkg/models"
 	desc "oliva-back/pkg/user_v1"
 	"oliva-back/pkg/utils"
+	"time"
 )
 
 type server struct {
@@ -18,10 +22,9 @@ var (
 	database *gorm.DB
 )
 
-func Register(gRPCServer *grpc.Server, db *gorm.DB) {
+func Register(gRPCServer *grpc.Server) {
 	desc.RegisterUserv1Server(gRPCServer, &server{})
 
-	database = db
 }
 
 // Получение пользователя
@@ -31,16 +34,16 @@ func (s *server) GetUser(ctx context.Context, req *desc.GetRequestUser) (*desc.G
 	var user models.User
 	database.First(&user, idUser)
 
-	if user.ID == 0 {
-		return &desc.GetResponseUser{}, errors.New("Invalid User ID!")
+	if user.Id == 0 {
+		return &desc.GetResponseUser{}, errors.New("Неверный User ID!")
 	}
 
 	return &desc.GetResponseUser{
-		IdUser:      uint32(user.ID),
+		IdUser:      uint32(user.Id),
 		Surname:     user.Surname,
 		Name:        user.Name,
 		Middlename:  user.Middlename,
-		PhoneNumber: user.Phone_number,
+		PhoneNumber: user.PhoneNumber,
 		Email:       user.Email,
 		Sex:         user.Sex,
 	}, nil
@@ -50,22 +53,59 @@ func (s *server) CreateUser(ctx context.Context, req *desc.PostRequestUser) (*de
 	surname := req.GetSurname()
 	name := req.GetName()
 	middlename := req.GetMiddlename()
-	phone_number := req.GetPhoneNumber()
+	phoneNumber := req.GetPhoneNumber()
 	mail := req.GetEmail()
 	sex := req.GetSex()
+	password := req.GetPassword()
+
+	if utils.CheckEmpty(name) {
+		return &desc.PostResponseUser{}, errors.New("Введите имя!")
+	}
+	if utils.CheckEmpty(surname) {
+		return &desc.PostResponseUser{}, errors.New("Введите фамилию!")
+	}
 	if utils.ValidateEmail(mail) == false {
-		return &desc.PostResponseUser{}, errors.New("Mail invalid or missing!")
+		return &desc.PostResponseUser{}, errors.New("Электроная почта указана неверно или отсутсвует!")
+	}
+
+	if utils.ValidatePhoneNumber(phoneNumber) == false {
+		return &desc.PostResponseUser{}, errors.New("Номер телефона указан неверно или отсутсвует!")
 	}
 
 	var user models.User
-	database.Where(&models.User{Phone_number: phone_number}).Or(&models.User{Email: mail}).First(&user)
+	database.Where(&models.User{PhoneNumber: phoneNumber}).Or(&models.User{Email: mail}).First(&user)
 
-	if utils.CheckEmpty(user.ID) {
-		return &desc.PostResponseUser{}, errors.New("Номер телефона или электронная почта заняты!")
+	passwordValidator := validator.New(validator.MinLength(8, errors.New("Пароль слишком короткий")), validator.MaxLength(32, errors.New("Пароль слишком длинный")))
+	err := passwordValidator.Validate(password)
+	if err != nil {
+		return &desc.PostResponseUser{}, err
 	}
 
-	newUser := models.NewUser(surname, name, middlename, phone_number, mail, sex) //models.User{}
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 8)
+
+	if err != nil {
+		return &desc.PostResponseUser{}, errors.New("Хэш ошибка!")
+	}
+
+	newUser := models.NewUser(surname, name, middlename, phoneNumber, mail, sex, string(hashed)) //models.User{}
 	database.Create(&newUser)
 
-	return &desc.PostResponseUser{IdUser: uint32(newUser.ID)}, nil
+	return &desc.PostResponseUser{IdUser: newUser.Id}, nil
+}
+func (s *server) LoginUser(ctx context.Context, req *desc.RequestLogin) (*desc.ResponseLogin, error) {
+	password := req.GetPassword()
+
+	var user models.User
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return &desc.ResponseLogin{}, errors.New("Password incorrect")
+	}
+
+	token, err := utils.NewToken(user, time.Duration(400))
+	if err != nil {
+		fmt.Println("failed to generate token")
+
+		return &desc.ResponseLogin{}, errors.New("Ошибка создания токена")
+	}
+
+	return &desc.ResponseLogin{Token: token}, nil
 }
