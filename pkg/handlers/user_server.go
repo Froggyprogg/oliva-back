@@ -1,4 +1,4 @@
-package user_v1
+package handlers
 
 import (
 	"context"
@@ -8,22 +8,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
-	"oliva-back/pkg/models"
-	desc "oliva-back/pkg/user_v1"
-	"oliva-back/pkg/utils"
+	desc "oliva-back/internal/gen"
+	"oliva-back/internal/models"
+	"oliva-back/internal/utils"
+	"os"
 	"time"
 )
 
 type server struct {
-	desc.UnimplementedUserv1Server
+	desc.UnimplementedUserServer
 }
 
 var (
-	database *gorm.DB
+	jwtSecret           = []byte(os.Getenv("JWT_SECRET"))
+	TokenExpireDuration = time.Hour * 24 * 7
+	database            *gorm.DB
 )
 
 func Register(gRPCServer *grpc.Server) {
-	desc.RegisterUserv1Server(gRPCServer, &server{})
+	desc.RegisterUserServer(gRPCServer, &server{})
 
 }
 
@@ -92,6 +95,7 @@ func (s *server) CreateUser(ctx context.Context, req *desc.PostRequestUser) (*de
 
 	return &desc.PostResponseUser{IdUser: newUser.Id}, nil
 }
+
 func (s *server) LoginUser(ctx context.Context, req *desc.RequestLogin) (*desc.ResponseLogin, error) {
 	password := req.GetPassword()
 
@@ -100,7 +104,7 @@ func (s *server) LoginUser(ctx context.Context, req *desc.RequestLogin) (*desc.R
 		return &desc.ResponseLogin{}, errors.New("Password incorrect")
 	}
 
-	token, err := utils.NewToken(user, time.Duration(400))
+	token, err := utils.NewToken(user, TokenExpireDuration, jwtSecret)
 	if err != nil {
 		fmt.Println("failed to generate token")
 

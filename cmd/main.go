@@ -1,7 +1,7 @@
 package main
 
 import (
-	"oliva-back/pkg/app"
+	"oliva-back/internal/app"
 	"oliva-back/pkg/config"
 )
 

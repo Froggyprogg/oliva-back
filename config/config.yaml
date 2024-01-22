@@ -2,11 +2,11 @@ env: "local"
 grpc:
   port: 50051
   timeout: 5s
-db:
-  host: "172.18.0.2"
-  user: "postgres"
+postgres:
+  host: "172.21.0.2"
+  user: "admin"
   password: "admin"
-  dbname: "task_tracker"
+  dbname: "oliva_auth"
   port: "5432"
   sslmode: "disable"
   timezone: "Asia/Shanghai"

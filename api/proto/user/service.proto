@@ -4,7 +4,7 @@ package user_v1;
 
 option go_package="./";
 
-service Userv1{
+service User{
   rpc CreateUser(PostRequestUser) returns (PostResponseUser);
   rpc GetUser(GetRequestUser) returns (GetResponseUser);
   rpc LoginUser(RequestLogin) returns(ResponseLogin);
@@ -45,6 +45,7 @@ message RequestLogin{
 message ResponseLogin{
   string token=1;
 }
+
 //TODO: Разобраться с датой рождения
 message user{
   uint32 id_user=1;

@@ -2,7 +2,7 @@ package utils
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"oliva-back/pkg/models"
+	"oliva-back/internal/models"
 	"regexp"
 	"time"
 )
@@ -36,18 +36,12 @@ func CheckEmpty(data interface{}) bool {
 	}
 }
 
-func NewToken(user models.User, duration time.Duration) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-	claims["uid"] = user.Id
-	claims["email"] = user.Email
-	claims["exp"] = time.Now().Add(duration).Unix()
-
-	tokenString, err := token.SignedString([]byte(user.Name)) // TODO: Починить signed string
-	if err != nil {
-		return "", err
+func NewToken(user models.User, duration time.Duration, secret []byte) (string, error) {
+	claims := jwt.MapClaims{
+		"username": user.Surname,
+		"mail":     user.Email,
+		"exp":      time.Now().Add(duration).Unix(),
 	}
-
-	return tokenString, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(secret)
 }

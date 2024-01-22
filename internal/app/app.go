@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 	"oliva-back/pkg/config"
-	user "oliva-back/pkg/grpc/user_v1"
+	user "oliva-back/pkg/handlers"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,6 +34,7 @@ func Run(cfg *config.Config) *App {
 		log.Fatalf("failed to serve: %d", err)
 		return nil
 	}
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
