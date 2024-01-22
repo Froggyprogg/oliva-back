@@ -2,7 +2,7 @@ package models
 
 type User struct {
 	Id          uint32 `json:"id" sql:"id"`
-	Surname     string `json:"surname" validate:"required" sql:"surname""`
+	Surname     string `json:"surname" validate:"required" sql:"surname"`
 	Name        string `json:"name" validate:"required" sql:"name"`
 	Middlename  string `json:"middlename" sql:"middlename"`
 	PhoneNumber string `json:"phonenumber" validate:"required" sql:"phonenumber"`
