@@ -25,24 +25,24 @@ var (
 	database            *gorm.DB
 )
 
-func Register(gRPCServer *grpc.Server) {
+func Register(gRPCServer *grpc.Server, db *gorm.DB) {
 	desc.RegisterUserServer(gRPCServer, &server{})
-
+	database = db
 }
 
 // Получение пользователя
 func (s *server) GetUser(ctx context.Context, req *desc.GetRequestUser) (*desc.GetResponseUser, error) {
 	idUser := req.GetIdUser()
 
-	var user models.User
+	var user models.Users
 	database.First(&user, idUser)
 
-	if user.Id == 0 {
+	if user.ID == 0 {
 		return &desc.GetResponseUser{}, errors.New("Неверный User ID!")
 	}
 
 	return &desc.GetResponseUser{
-		IdUser:      uint32(user.Id),
+		IdUser:      uint32(user.ID),
 		Surname:     user.Surname,
 		Name:        user.Name,
 		Middlename:  user.Middlename,
@@ -74,9 +74,12 @@ func (s *server) CreateUser(ctx context.Context, req *desc.PostRequestUser) (*de
 	if utils.ValidatePhoneNumber(phoneNumber) == false {
 		return &desc.PostResponseUser{}, errors.New("Номер телефона указан неверно или отсутсвует!")
 	}
+	var user models.Users
+	database.Where(&models.Users{Email: mail}).Or(&models.Users{PhoneNumber: phoneNumber}).First(&user)
 
-	var user models.User
-	database.Where(&models.User{PhoneNumber: phoneNumber}).Or(&models.User{Email: mail}).First(&user)
+	if user.ID > 0 {
+		return &desc.PostResponseUser{}, errors.New("Номер телефона или электронная почта уже используются!")
+	}
 
 	passwordValidator := validator.New(validator.MinLength(8, errors.New("Пароль слишком короткий")), validator.MaxLength(32, errors.New("Пароль слишком длинный")))
 	err := passwordValidator.Validate(password)
@@ -90,24 +93,23 @@ func (s *server) CreateUser(ctx context.Context, req *desc.PostRequestUser) (*de
 		return &desc.PostResponseUser{}, errors.New("Хэш ошибка!")
 	}
 
-	newUser := models.NewUser(surname, name, middlename, phoneNumber, mail, sex, string(hashed)) //models.User{}
+	newUser := models.NewUser(surname, name, middlename, phoneNumber, mail, sex, string(hashed))
+	fmt.Println(surname, name, middlename, phoneNumber, mail, sex, string(hashed))
 	database.Create(&newUser)
 
-	return &desc.PostResponseUser{IdUser: newUser.Id}, nil
+	return &desc.PostResponseUser{IdUser: uint32(newUser.ID)}, nil
 }
 
 func (s *server) LoginUser(ctx context.Context, req *desc.RequestLogin) (*desc.ResponseLogin, error) {
 	password := req.GetPassword()
 
-	var user models.User
+	var user models.Users
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return &desc.ResponseLogin{}, errors.New("Password incorrect")
+		return &desc.ResponseLogin{}, errors.New("Логин или пароль неверны")
 	}
 
 	token, err := utils.NewToken(user, TokenExpireDuration, jwtSecret)
 	if err != nil {
-		fmt.Println("failed to generate token")
-
 		return &desc.ResponseLogin{}, errors.New("Ошибка создания токена")
 	}
 

@@ -36,7 +36,7 @@ func CheckEmpty(data interface{}) bool {
 	}
 }
 
-func NewToken(user models.User, duration time.Duration, secret []byte) (string, error) {
+func NewToken(user models.Users, duration time.Duration, secret []byte) (string, error) {
 	claims := jwt.MapClaims{
 		"username": user.Surname,
 		"mail":     user.Email,

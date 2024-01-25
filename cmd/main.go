@@ -9,5 +9,4 @@ func main() {
 	cfg := config.MustLoad()
 
 	app.Run(cfg)
-
 }

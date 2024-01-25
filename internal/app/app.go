@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"gorm.io/gorm"
 	"log"
 	"net"
+	"oliva-back/internal/db"
 	"oliva-back/pkg/config"
 	user "oliva-back/pkg/handlers"
 	"os"
@@ -15,9 +17,11 @@ import (
 
 type App struct {
 	gRPCServer *grpc.Server
+	database   *gorm.DB
 }
 
 func Run(cfg *config.Config) *App {
+	database := db.NewDatabaseConnection(cfg)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPC.Port))
 	if err != nil {
@@ -27,7 +31,7 @@ func Run(cfg *config.Config) *App {
 
 	gRPCServer := grpc.NewServer()
 	reflection.Register(gRPCServer)
-	user.Register(gRPCServer)
+	user.Register(gRPCServer, database)
 	log.Printf("server listening at :%d", cfg.GRPC.Port)
 
 	if err = gRPCServer.Serve(lis); err != nil {

@@ -8,13 +8,25 @@ import (
 )
 
 type Config struct {
-	Env  string     `yaml:"env" env-default:"local"`
-	GRPC GRPCConfig `yaml:"grpc"`
+	Env            string     `yaml:"env" env-default:"local"`
+	GRPC           GRPCConfig `yaml:"grpc"`
+	DB             Database   `yaml:"postgres"`
+	MigrationsPath string
 }
 
 type GRPCConfig struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
+}
+
+type Database struct {
+	Host     string `yaml:"host"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+	Port     string `yaml:"port"`
+	SSLMode  string `yaml:"sslmode"`
+	Timezone string `yaml:"timezone"`
 }
 
 func MustLoad() *Config {
