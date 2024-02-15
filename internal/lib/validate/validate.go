@@ -1,11 +1,6 @@
-package utils
+package validate
 
-import (
-	"github.com/golang-jwt/jwt/v5"
-	"oliva-back/internal/models"
-	"regexp"
-	"time"
-)
+import "regexp"
 
 func ValidateEmail(mail string) bool {
 	regex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -34,14 +29,4 @@ func CheckEmpty(data interface{}) bool {
 	default:
 		return false
 	}
-}
-
-func NewToken(user models.Users, duration time.Duration, secret []byte) (string, error) {
-	claims := jwt.MapClaims{
-		"username": user.Surname,
-		"mail":     user.Email,
-		"exp":      time.Now().Add(duration).Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secret)
 }

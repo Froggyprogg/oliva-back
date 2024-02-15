@@ -4,14 +4,14 @@ package user_v1;
 
 option go_package="./";
 
-service User{
-  rpc CreateUser(PostRequestUser) returns (PostResponseUser);
-  rpc GetUser(GetRequestUser) returns (GetResponseUser);
-  rpc LoginUser(RequestLogin) returns(ResponseLogin);
+service Auth{
+  rpc CreateUser(PostUserRequest) returns (PostUserResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc LoginUser(LoginRequest) returns(LoginResponse);
 }
 
 //CreateUser
-message PostRequestUser{
+message PostUserRequest{
   string surname=2;
   string name=3;
   string middlename=4;
@@ -20,15 +20,21 @@ message PostRequestUser{
   string sex=7;
   string password=8;
 }
-message PostResponseUser{
-  uint32 id_user=1;
+message PostUserResponse{
+  int64 status=1;
+  string error=2;
 }
 
 //GetUser
-message GetRequestUser{
+message GetUserRequest{
   uint32 id_user=1;
 }
-message GetResponseUser{
+message GetUserResponse{
+  int64 status=1;
+  string error=2;
+  UserData data=3;
+}
+message UserData{
   uint32 id_user=1;
   string surname=2;
   string name=3;
@@ -38,12 +44,14 @@ message GetResponseUser{
   string sex=7;
 }
 //Login
-message RequestLogin{
+message LoginRequest{
   string login = 1;
   string password =2;
 }
-message ResponseLogin{
-  string token=1;
+message LoginResponse{
+  int64 status=1;
+  string error=2;
+  string token=3;
 }
 
 //TODO: Разобраться с датой рождения
