@@ -1,15 +1,15 @@
 package app
 
 import (
+	"database/sql"
 	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"gorm.io/gorm"
 	"log"
 	"net"
-	"oliva-back/internal/db"
-	"oliva-back/pkg/config"
-	user "oliva-back/pkg/handlers"
+	"oliva-back/internal/config"
+	user "oliva-back/internal/grpc/auth"
+	"oliva-back/internal/storage"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,11 +17,11 @@ import (
 
 type App struct {
 	gRPCServer *grpc.Server
-	database   *gorm.DB
+	database   *sql.DB
 }
 
 func Run(cfg *config.Config) *App {
-	database := db.NewDatabaseConnection(cfg)
+	database := storage.NewDatabaseConnection(cfg)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPC.Port))
 	if err != nil {

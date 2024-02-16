@@ -23,6 +23,7 @@ message PostUserRequest{
 message PostUserResponse{
   int64 status=1;
   string error=2;
+  uint32 id_user=3;
 }
 
 //GetUser
@@ -35,7 +36,6 @@ message GetUserResponse{
   UserData data=3;
 }
 message UserData{
-  uint32 id_user=1;
   string surname=2;
   string name=3;
   string middlename=4;

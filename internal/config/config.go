@@ -1,66 +1,42 @@
 package config
 
 import (
-	"flag"
-	"github.com/ilyakaznacheev/cleanenv"
-	"os"
-	"time"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Env            string     `yaml:"env" env-default:"local"`
-	GRPC           GRPCConfig `yaml:"grpc"`
-	DB             Database   `yaml:"postgres"`
+	GRPC           GRPC
+	Database       Database
 	MigrationsPath string
 }
 
-type GRPCConfig struct {
-	Port    int           `yaml:"port"`
-	Timeout time.Duration `yaml:"timeout"`
+type GRPC struct {
+	Port string
 }
 
 type Database struct {
-	Host     string `yaml:"host"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	DBName   string `yaml:"dbname"`
-	Port     string `yaml:"port"`
-	SSLMode  string `yaml:"sslmode"`
-	Timezone string `yaml:"timezone"`
+	Host     string
+	User     string
+	Password string
+	DBName   string
+	Port     string
+	SSLMode  string
+	Timezone string
 }
 
-func MustLoad() *Config {
-	configPath := fetchConfigPath()
-	if configPath == "" {
-		panic("config path is empty")
+func NewConfig() *Config {
+	return &Config{
+		GRPC: GRPC{
+			Port: viper.GetString("grpc.port"),
+		},
+		Database: Database{
+			Host:     viper.GetString("postgres.host"),
+			User:     viper.GetString("postgres.user"),
+			Password: viper.GetString("postgres.password"),
+			DBName:   viper.GetString("postgres.dbname"),
+			Port:     viper.GetString("postgres.port"),
+			SSLMode:  viper.GetString("postgres.sslmode"),
+			Timezone: viper.GetString("postgres.timezone"),
+		},
 	}
-
-	return MustLoadPath(configPath)
-}
-
-func MustLoadPath(configPath string) *Config {
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		panic("config file does not exist: " + configPath)
-	}
-
-	var cfg Config
-
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		panic("cannot read config: " + err.Error())
-	}
-
-	return &cfg
-}
-
-func fetchConfigPath() string {
-	var res string
-
-	flag.StringVar(&res, "config", "config/config.yaml", "path to config file")
-	flag.Parse()
-
-	if res == "" {
-		res = os.Getenv("CONFIG_PATH")
-	}
-
-	return res
 }

@@ -2,16 +2,32 @@ package jwt
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"oliva-back/internal/models"
 	"time"
 )
 
-func NewToken(user models.Users, duration time.Duration, secret []byte) (string, error) {
-	claims := jwt.MapClaims{
-		"username": user.Surname,
-		"mail":     user.Email,
-		"exp":      time.Now().Add(duration).Unix(),
+var (
+	TokenExpireDuration = time.Hour * 24 * 7
+)
+
+func GenerateToken(login string, tokenID uint) (string, error) {
+	privateKey, err := PrivateKeyToRsa()
+	if err != nil {
+		return "", err
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secret)
+
+	claims := jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpireDuration)),
+		NotBefore: jwt.NewNumericDate(time.Now()),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+		Subject:   login,
+		Issuer:    "oliva-sso",
+		ID:        string(tokenID),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	signedToken, err := token.SignedString(privateKey)
+	if err != nil {
+		return "", err
+	}
+	return signedToken, nil
 }

@@ -1,10 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type Users struct {
-	//Id          uint32 `gorm:"primaryKey"`
-	gorm.Model
+	Id          uint32 `gorm:"primaryKey"`
 	Surname     string `gorm:"type:varchar(50);not null"`
 	Name        string `gorm:"type:varchar(50);not null"`
 	Middlename  string `gorm:"type:varchar(50);"`

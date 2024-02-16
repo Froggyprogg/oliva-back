@@ -2,11 +2,11 @@ package main
 
 import (
 	"oliva-back/internal/app"
-	"oliva-back/pkg/config"
+	"oliva-back/internal/config"
 )
 
 func main() {
-	cfg := config.MustLoad()
+	cfg := config.NewConfig()
 
 	app.Run(cfg)
 }
