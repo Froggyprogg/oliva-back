@@ -5,9 +5,8 @@ import (
 )
 
 type Config struct {
-	GRPC           GRPC
-	Database       Database
-	MigrationsPath string
+	GRPC     GRPC
+	Database Database
 }
 
 type GRPC struct {
@@ -39,4 +38,10 @@ func NewConfig() *Config {
 			Timezone: viper.GetString("postgres.timezone"),
 		},
 	}
+}
+
+func InitConfig() error {
+	viper.AddConfigPath("config")
+	viper.SetConfigName("config")
+	return viper.ReadInConfig()
 }

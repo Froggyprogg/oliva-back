@@ -36,12 +36,14 @@ message GetUserResponse{
   UserData data=3;
 }
 message UserData{
+  uint32 id_user=1;
   string surname=2;
   string name=3;
   string middlename=4;
   string phone_number=5;
   string email=6;
   string sex=7;
+  string password=8;
 }
 //Login
 message LoginRequest{

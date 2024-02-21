@@ -1,6 +1,5 @@
-env: "local"
 grpc:
-  port: 50051
+  port: "50051"
 postgres:
   host: "172.18.0.2"
   user: "admin"

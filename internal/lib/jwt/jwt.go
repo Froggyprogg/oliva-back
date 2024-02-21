@@ -9,7 +9,7 @@ var (
 	TokenExpireDuration = time.Hour * 24 * 7
 )
 
-func GenerateToken(login string, tokenID uint) (string, error) {
+func GenerateToken(login string, tokenID uint32) (string, error) {
 	privateKey, err := PrivateKeyToRsa()
 	if err != nil {
 		return "", err

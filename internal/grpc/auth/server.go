@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"github.com/go-passwd/validator"
 	"google.golang.org/grpc"
@@ -14,6 +13,14 @@ import (
 	"oliva-back/internal/storage"
 )
 
+type UserData struct {
+	surname,
+	name,
+	middlename,
+	phoneNumber,
+	email,
+	sex string
+}
 type Auth interface {
 	Login(
 		ctx context.Context,
@@ -30,16 +37,11 @@ type Auth interface {
 		sex,
 		password string,
 	) (idUser uint32, err error)
-	GetUser(
-		ctx context.Context,
-		idUser uint32,
-	) (
-		surname,
-		name,
-		middlename,
-		phoneNumber,
-		email,
-		sex string)
+	//GetUser(
+	//	ctx context.Context,
+	//	idUser uint32,
+	//) (
+	//	userdata *desc.UserData, err error)
 }
 
 type serverAPI struct {
@@ -48,15 +50,15 @@ type serverAPI struct {
 }
 
 var (
-	database *sql.DB
+	database *storage.Storage
 )
 
-func Register(gRPCServer *grpc.Server, db *sql.DB) {
-	desc.RegisterAuthServer(gRPCServer, &serverAPI{})
+func Register(gRPCServer *grpc.Server, db *storage.Storage, auth Auth) {
+	desc.RegisterAuthServer(gRPCServer, &serverAPI{auth: auth})
 	database = db
 }
 
-func (s *serverAPI) Login(
+func (s *serverAPI) LoginUser(
 	ctx context.Context,
 	in *desc.LoginRequest,
 ) (*desc.LoginResponse, error) {
@@ -79,7 +81,7 @@ func (s *serverAPI) Login(
 
 	return &desc.LoginResponse{Token: token}, nil
 }
-func (s *serverAPI) Register(
+func (s *serverAPI) CreateUser(
 	ctx context.Context,
 	in *desc.PostUserRequest,
 ) (*desc.PostUserResponse, error) {
@@ -91,11 +93,11 @@ func (s *serverAPI) Register(
 	sex := in.GetSex()
 	password := in.GetPassword()
 
-	if libvalidate.CheckEmpty(name) {
-		return &desc.PostUserResponse{}, errors.New("Введите имя!")
-	}
 	if libvalidate.CheckEmpty(surname) {
 		return &desc.PostUserResponse{}, errors.New("Введите фамилию!")
+	}
+	if libvalidate.CheckEmpty(name) {
+		return &desc.PostUserResponse{}, errors.New("Введите имя!")
 	}
 	if libvalidate.ValidateEmail(mail) == false {
 		return &desc.PostUserResponse{}, errors.New("Электроная почта указана неверно или отсутсвует!")
@@ -120,3 +122,23 @@ func (s *serverAPI) Register(
 
 	return &desc.PostUserResponse{IdUser: uid}, nil
 }
+
+//func (s *serverAPI) GetUser(
+//	ctx context.Context,
+//	in *desc.GetUserRequest,
+//) (*desc.GetUserResponse, error) {
+//	idUser := in.GetIdUser()
+//	data, err := s.auth.GetUser(ctx, idUser)
+//	if err != nil {
+//		if errors.Is(err, storage.ErrUserNotFound) {
+//			return nil, status.Error(codes.AlreadyExists, "Пользователь не найден")
+//		}
+//
+//		return nil, status.Error(codes.Internal, "Ошибка при поиске пользователя")
+//	}
+//
+//	return &desc.GetUserResponse{
+//		Status: http.StatusOK,
+//		Data:   data,
+//	}, nil
+//}

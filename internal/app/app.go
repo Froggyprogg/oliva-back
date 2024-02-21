@@ -2,13 +2,13 @@ package app
 
 import (
 	"database/sql"
-	"fmt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"oliva-back/internal/config"
 	user "oliva-back/internal/grpc/auth"
+	auth "oliva-back/internal/services"
 	"oliva-back/internal/storage"
 	"os"
 	"os/signal"
@@ -22,17 +22,16 @@ type App struct {
 
 func Run(cfg *config.Config) *App {
 	database := storage.NewDatabaseConnection(cfg)
-
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPC.Port))
+	lis, err := net.Listen("tcp", ":"+cfg.GRPC.Port)
 	if err != nil {
 		log.Fatalf("Failed to listen: %d", err)
 		return nil
 	}
-
+	authService := auth.New(database, database)
 	gRPCServer := grpc.NewServer()
 	reflection.Register(gRPCServer)
-	user.Register(gRPCServer, database)
-	log.Printf("server listening at :%d", cfg.GRPC.Port)
+	user.Register(gRPCServer, database, authService)
+	log.Println("server listening at: ", cfg.GRPC.Port)
 
 	if err = gRPCServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %d", err)
